@@ -1,0 +1,72 @@
+{
+  "common": {
+    "appName": "Fitogether",
+    "challenges": "Challenges",
+    "routines": "Routines",
+    "profile": "Profile",
+    "settings": "Settings",
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "latest": "Latest",
+    "popular": "Popular"
+  },
+  "challenge": {
+    "create": "Create Challenge",
+    "edit": "Edit Challenge",
+    "participate": "Participate",
+    "leave": "Leave",
+    "certify": "Certify",
+    "certifications": "Certifications",
+    "title": "Title",
+    "description": "Description",
+    "category": "Category",
+    "difficulty": "Difficulty",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "maxParticipants": "Max Participants",
+    "rules": "Rules",
+    "addRule": "Add Rule",
+    "removeRule": "Remove Rule"
+  },
+  "routine": {
+    "create": "Create Routine",
+    "edit": "Edit Routine",
+    "title": "Title",
+    "description": "Description",
+    "category": "Category",
+    "difficulty": "Difficulty",
+    "duration": "Duration",
+    "exercises": "Exercises",
+    "addExercise": "Add Exercise",
+    "removeExercise": "Remove Exercise",
+    "exerciseName": "Exercise Name",
+    "sets": "Sets",
+    "reps": "Reps",
+    "restTime": "Rest Time"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password",
+    "resetPassword": "Reset Password",
+    "name": "Name",
+    "nickname": "Nickname"
+  },
+  "profile": {
+    "edit": "Edit Profile",
+    "bio": "Bio",
+    "stats": "Stats",
+    "achievements": "Achievements",
+    "settings": "Settings"
+  }
+}
