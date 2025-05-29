@@ -1,80 +1,135 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useNotifications } from "../contexts/NotificationContext";
+import { useAuth } from "../contexts/AuthContext";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import Input from "../components/Input";
 
-interface ChallengeForm {
+interface Rule {
+  id: string;
+  description: string;
+}
+
+interface Challenge {
+  id: string;
   title: string;
   description: string;
   category: string;
   difficulty: string;
   startDate: string;
   endDate: string;
-  rules: string[];
   maxParticipants: number;
+  rules: Rule[];
 }
 
 const EditChallenge: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [form, setForm] = useState<ChallengeForm>({
-    title: "30일 러닝 챌린지",
-    description: "30일 동안 매일 5km 러닝하기",
-    category: "러닝",
-    difficulty: "중급",
-    startDate: "2024-03-20",
-    endDate: "2024-04-19",
-    rules: [
-      "매일 5km 이상 러닝하기",
-      "러닝 인증 사진 업로드하기",
-      "3일 연속 미인증 시 챌린지 실패",
-    ],
-    maxParticipants: 100,
-  });
+  const { t } = useTranslation();
+  const { showNotification } = useNotifications();
+  const { user } = useAuth();
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    // TODO: Implement challenge fetch
+    const mockChallenge: Challenge = {
+      id: id || "",
+      title: "Sample Challenge",
+      description: "This is a sample challenge",
+      category: "upperBody",
+      difficulty: "intermediate",
+      startDate: new Date().toISOString().split("T")[0],
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+      maxParticipants: 100,
+      rules: [
+        {
+          id: "1",
+          description: "Complete the challenge within the time limit",
+        },
+      ],
+    };
+    setChallenge(mockChallenge);
+    setLoading(false);
+  }, [id]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!challenge) return;
+
+    setSaving(true);
+    try {
+      // TODO: Implement challenge update
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      showNotification(t("challenge.updateSuccess"), "success");
+      navigate(`/challenges/${challenge.id}`);
+    } catch (error) {
+      showNotification(t("challenge.updateError"), "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleRuleChange = (index: number, value: string) => {
-    const newRules = [...form.rules];
-    newRules[index] = value;
-    setForm((prev) => ({
-      ...prev,
-      rules: newRules,
-    }));
+    if (!challenge) return;
+
+    const updatedRules = [...challenge.rules];
+    updatedRules[index] = {
+      ...updatedRules[index],
+      description: value,
+    };
+
+    setChallenge({
+      ...challenge,
+      rules: updatedRules,
+    });
   };
 
   const addRule = () => {
-    setForm((prev) => ({
-      ...prev,
-      rules: [...prev.rules, ""],
-    }));
+    if (!challenge) return;
+
+    const newRule: Rule = {
+      id: Math.random().toString(36).substr(2, 9),
+      description: "",
+    };
+
+    setChallenge({
+      ...challenge,
+      rules: [...challenge.rules, newRule],
+    });
   };
 
   const removeRule = (index: number) => {
-    const newRules = form.rules.filter((_, i) => i !== index);
-    setForm((prev) => ({
-      ...prev,
-      rules: newRules,
-    }));
+    if (!challenge) return;
+
+    const updatedRules = challenge.rules.filter((_, i) => i !== index);
+    setChallenge({
+      ...challenge,
+      rules: updatedRules,
+    });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: API 연동
-    console.log("챌린지 수정:", form);
-    navigate(`/challenges/${id}`);
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (!challenge) {
+    return (
+      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        {t("challenge.notFound")}
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -86,8 +141,10 @@ const EditChallenge: React.FC = () => {
             <Input
               label="챌린지 제목"
               name="title"
-              value={form.title}
-              onChange={handleChange}
+              value={challenge.title}
+              onChange={(e) =>
+                setChallenge({ ...challenge, title: e.target.value })
+              }
               placeholder="예: 30일 러닝 챌린지"
               required
             />
@@ -98,8 +155,10 @@ const EditChallenge: React.FC = () => {
               </label>
               <textarea
                 name="description"
-                value={form.description}
-                onChange={handleChange}
+                value={challenge.description}
+                onChange={(e) =>
+                  setChallenge({ ...challenge, description: e.target.value })
+                }
                 rows={4}
                 placeholder="챌린지에 대한 설명을 입력해주세요"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -114,16 +173,20 @@ const EditChallenge: React.FC = () => {
                 </label>
                 <select
                   name="category"
-                  value={form.category}
-                  onChange={handleChange}
+                  value={challenge.category}
+                  onChange={(e) =>
+                    setChallenge({ ...challenge, category: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="러닝">러닝</option>
-                  <option value="홈트레이닝">홈트레이닝</option>
-                  <option value="요가">요가</option>
-                  <option value="수영">수영</option>
-                  <option value="자전거">자전거</option>
+                  {Object.entries(
+                    t("challenge.categories", { returnObjects: true })
+                  ).map(([key, value]) => (
+                    <option key={key} value={key}>
+                      {value}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -133,14 +196,20 @@ const EditChallenge: React.FC = () => {
                 </label>
                 <select
                   name="difficulty"
-                  value={form.difficulty}
-                  onChange={handleChange}
+                  value={challenge.difficulty}
+                  onChange={(e) =>
+                    setChallenge({ ...challenge, difficulty: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="초급">초급</option>
-                  <option value="중급">중급</option>
-                  <option value="고급">고급</option>
+                  {Object.entries(
+                    t("challenge.difficulties", { returnObjects: true })
+                  ).map(([key, value]) => (
+                    <option key={key} value={key}>
+                      {value}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -153,8 +222,10 @@ const EditChallenge: React.FC = () => {
                 <input
                   type="date"
                   name="startDate"
-                  value={form.startDate}
-                  onChange={handleChange}
+                  value={challenge.startDate}
+                  onChange={(e) =>
+                    setChallenge({ ...challenge, startDate: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -167,8 +238,10 @@ const EditChallenge: React.FC = () => {
                 <input
                   type="date"
                   name="endDate"
-                  value={form.endDate}
-                  onChange={handleChange}
+                  value={challenge.endDate}
+                  onChange={(e) =>
+                    setChallenge({ ...challenge, endDate: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -182,8 +255,13 @@ const EditChallenge: React.FC = () => {
               <input
                 type="number"
                 name="maxParticipants"
-                value={form.maxParticipants}
-                onChange={handleChange}
+                value={challenge.maxParticipants}
+                onChange={(e) =>
+                  setChallenge({
+                    ...challenge,
+                    maxParticipants: parseInt(e.target.value),
+                  })
+                }
                 min={1}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
@@ -191,40 +269,53 @@ const EditChallenge: React.FC = () => {
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  챌린지 규칙
-                </label>
-                <Button
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-medium text-gray-900">
+                  {t("challenge.rules")}
+                </h2>
+                <button
                   type="button"
-                  variant="outline"
                   onClick={addRule}
-                  className="text-sm"
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
-                  규칙 추가
-                </Button>
+                  {t("challenge.addRule")}
+                </button>
               </div>
-              <div className="space-y-2">
-                {form.rules.map((rule, index) => (
-                  <div key={index} className="flex space-x-2">
-                    <input
-                      type="text"
-                      value={rule}
-                      onChange={(e) => handleRuleChange(index, e.target.value)}
-                      placeholder={`규칙 ${index + 1}`}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                    {form.rules.length > 1 && (
-                      <Button
+
+              <div className="space-y-4">
+                {challenge.rules.map((rule, index) => (
+                  <div key={rule.id} className="p-4 bg-white rounded-lg shadow">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {t("challenge.rule")} {index + 1}
+                      </h3>
+                      <button
                         type="button"
-                        variant="outline"
                         onClick={() => removeRule(index)}
-                        className="text-red-500 hover:text-red-600"
+                        className="text-red-600 hover:text-red-700"
                       >
-                        삭제
-                      </Button>
-                    )}
+                        {t("challenge.removeRule")}
+                      </button>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor={`rule-${index}-description`}
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        {t("challenge.ruleDescription")}
+                      </label>
+                      <input
+                        type="text"
+                        id={`rule-${index}-description`}
+                        value={rule.description}
+                        onChange={(e) =>
+                          handleRuleChange(index, e.target.value)
+                        }
+                        className="mt-1 block w-full rounded-md border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+                        required
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -234,12 +325,12 @@ const EditChallenge: React.FC = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate(`/challenges/${id}`)}
+                onClick={() => navigate(`/challenges/${challenge.id}`)}
               >
-                취소
+                {t("common.cancel")}
               </Button>
-              <Button type="submit" variant="primary">
-                수정하기
+              <Button type="submit" variant="primary" disabled={saving}>
+                {saving ? t("common.saving") : t("common.save")}
               </Button>
             </div>
           </form>

@@ -1,71 +1,197 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import Home from "./pages/Home";
-import RoutineList from "./pages/RoutineList";
-import RoutineDetail from "./pages/RoutineDetail";
-import CreateRoutine from "./pages/CreateRoutine";
-import Profile from "./pages/Profile";
-import ChallengeList from "./pages/ChallengeList";
-import EditProfile from "./pages/EditProfile";
-import Settings from "./pages/Settings";
-import ChallengeDetail from "./pages/ChallengeDetail";
-import CreateChallenge from "./pages/CreateChallenge";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import ForgotPassword from "./pages/ForgotPassword";
-import ChallengeCertification from "./pages/ChallengeCertification";
-import EditChallenge from "./pages/EditChallenge";
-import ChallengeCertifications from "./pages/ChallengeCertifications";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { NotificationProvider } from "./contexts/NotificationContext";
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import "./App.css";
+import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
+import { AuthProvider } from "./contexts/AuthContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
+import { PointProvider } from "./contexts/PointContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import "./i18n";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Loading from "./components/Loading";
+
+// Lazy load pages
+const Home = lazy(() => import("./pages/Home"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const Profile = lazy(() => import("./pages/Profile"));
+const EditProfile = lazy(() => import("./pages/EditProfile"));
+const RoutineList = lazy(() => import("./pages/RoutineList"));
+const RoutineDetail = lazy(() => import("./pages/RoutineDetail"));
+const CreateRoutine = lazy(() => import("./pages/CreateRoutine"));
+const EditRoutine = lazy(() => import("./pages/EditRoutine"));
+const ChallengeList = lazy(() => import("./pages/ChallengeList"));
+const ChallengeDetail = lazy(() => import("./pages/ChallengeDetail"));
+const CreateChallenge = lazy(() => import("./pages/CreateChallenge"));
+const EditChallenge = lazy(() => import("./pages/EditChallenge"));
+const ReportList = lazy(() => import("./pages/ReportList"));
+const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
+const PointsPage = lazy(() => import("./pages/PointsPage"));
+
+// 레이아웃 컴포넌트
+const Layout = () => {
+  return (
+    <div className="app">
+      <Navbar />
+      <main>
+        <Suspense fallback={<Loading />}>
+          <Outlet />
+        </Suspense>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <Layout />,
+      children: [
+        {
+          index: true,
+          element: <Home />,
+        },
+        {
+          path: "login",
+          element: <Login />,
+        },
+        {
+          path: "signup",
+          element: <Signup />,
+        },
+        {
+          path: "forgot-password",
+          element: <ForgotPassword />,
+        },
+        {
+          path: "profile",
+          element: (
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "profile/edit",
+          element: (
+            <ProtectedRoute>
+              <EditProfile />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "routines",
+          element: (
+            <ProtectedRoute>
+              <RoutineList />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "routines/:id",
+          element: (
+            <ProtectedRoute>
+              <RoutineDetail />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "routines/create",
+          element: (
+            <ProtectedRoute>
+              <CreateRoutine />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "routines/:id/edit",
+          element: (
+            <ProtectedRoute>
+              <EditRoutine />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "challenges",
+          element: (
+            <ProtectedRoute>
+              <ChallengeList />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "challenges/:id",
+          element: (
+            <ProtectedRoute>
+              <ChallengeDetail />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "challenges/create",
+          element: (
+            <ProtectedRoute>
+              <CreateChallenge />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "challenges/:id/edit",
+          element: (
+            <ProtectedRoute>
+              <EditChallenge />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "reports",
+          element: (
+            <ProtectedRoute>
+              <ReportList />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "notifications",
+          element: (
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "points",
+          element: (
+            <ProtectedRoute>
+              <PointsPage />
+            </ProtectedRoute>
+          ),
+        },
+      ],
+    },
+  ],
+  {
+    future: {
+      v7_relativeSplatPath: true,
+    },
+  }
+);
 
 function App() {
   return (
-    <ThemeProvider>
-      <NotificationProvider>
-        <Router>
-          <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-200">
-            <Header />
-            <main className="flex-grow">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/routines" element={<RoutineList />} />
-                <Route path="/routines/:id" element={<RoutineDetail />} />
-                <Route path="/routines/create" element={<CreateRoutine />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/profile/edit" element={<EditProfile />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/challenges" element={<ChallengeList />} />
-                <Route path="/challenges/:id" element={<ChallengeDetail />} />
-                <Route
-                  path="/challenges/create"
-                  element={<CreateChallenge />}
-                />
-                <Route
-                  path="/challenges/:id/certify"
-                  element={<ChallengeCertification />}
-                />
-                <Route
-                  path="/challenges/:id/edit"
-                  element={<EditChallenge />}
-                />
-                <Route
-                  path="/challenges/:id/certifications"
-                  element={<ChallengeCertifications />}
-                />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        </Router>
-      </NotificationProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <NotificationProvider>
+          <PointProvider>
+            <RouterProvider router={router} />
+          </PointProvider>
+        </NotificationProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

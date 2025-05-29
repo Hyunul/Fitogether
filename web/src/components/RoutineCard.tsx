@@ -17,11 +17,11 @@ const RoutineCard: React.FC<RoutineCardProps> = ({
   onClick,
 }) => {
   return (
-    <Card onClick={onClick} className="mb-4">
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600 mb-4">{description}</p>
-      <div className="flex justify-between items-center text-sm text-gray-500">
-        <span>주 {frequency}회</span>
+    <Card onClick={onClick}>
+      <h3 className="card-title">{title}</h3>
+      <p className="card-text">{description}</p>
+      <div className="text-muted">
+        <span className="me-3">주 {frequency}회</span>
         <span>{participants}명 참여 중</span>
       </div>
     </Card>

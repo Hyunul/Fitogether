@@ -10,14 +10,57 @@
     "logout": "Logout",
     "cancel": "Cancel",
     "save": "Save",
+    "saving": "Saving...",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
     "search": "Search",
+    "searchPlaceholder": "Enter search term",
     "filter": "Filter",
     "sort": "Sort",
     "latest": "Latest",
-    "popular": "Popular"
+    "popular": "Popular",
+    "all": "All",
+    "category": "Category",
+    "upperBody": "Upper Body",
+    "lowerBody": "Lower Body",
+    "core": "Core",
+    "close": "Close",
+    "dragAndDrop": "Drag and drop file to upload",
+    "maxFileSize": "Max {{size}}MB",
+    "invalidImageType": "Invalid image type",
+    "fileTooLarge": "File is too large (max {{size}}MB)"
+  },
+  "share": {
+    "share": "Share",
+    "copyLink": "Copy link",
+    "copySuccess": "Link has been copied",
+    "copyError": "Error copying link",
+    "shareError": "Error sharing"
+  },
+  "like": {
+    "like": "Like",
+    "unlike": "Unlike",
+    "count": "{{count}} likes",
+    "success": "Like has been updated",
+    "error": "An error occurred while processing like"
+  },
+  "bookmark": {
+    "add": "Add to bookmarks",
+    "remove": "Remove from bookmarks",
+    "success": "Bookmark has been saved",
+    "error": "An error occurred while processing bookmark"
+  },
+  "comment": {
+    "writeComment": "Write a comment",
+    "submit": "Submit",
+    "edit": "Edit comment",
+    "delete": "Delete comment",
+    "noComments": "No comments yet",
+    "deleteConfirm": "Are you sure you want to delete this comment?",
+    "editSuccess": "Comment has been edited",
+    "deleteSuccess": "Comment has been deleted",
+    "error": "An error occurred"
   },
   "challenge": {
     "create": "Create Challenge",
@@ -67,6 +110,10 @@
     "bio": "Bio",
     "stats": "Stats",
     "achievements": "Achievements",
-    "settings": "Settings"
+    "settings": "Settings",
+    "updateSuccess": "Profile has been updated",
+    "updateError": "An error occurred while updating profile",
+    "avatarUpdateSuccess": "Profile image has been updated",
+    "avatarUpdateError": "An error occurred while updating profile image"
   }
 }

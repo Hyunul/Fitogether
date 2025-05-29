@@ -1,9 +1,11 @@
 import React from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "outline" | "text";
+  children: React.ReactNode;
+  variant?: "primary" | "secondary" | "outline" | "text";
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
+  className?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -14,24 +16,22 @@ const Button: React.FC<ButtonProps> = ({
   className = "",
   ...props
 }) => {
-  const baseStyles =
-    "inline-flex items-center justify-center rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const baseStyles = "btn";
 
   const variantStyles = {
-    primary:
-      "bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500",
-    outline:
-      "border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-500",
-    text: "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-gray-500",
+    primary: "btn-primary",
+    secondary: "btn-secondary",
+    outline: "btn-outline",
+    text: "btn-text",
   };
 
   const sizeStyles = {
-    sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-base",
-    lg: "px-6 py-3 text-lg",
+    sm: "btn-sm",
+    md: "btn-md",
+    lg: "btn-lg",
   };
 
-  const widthStyles = fullWidth ? "w-full" : "";
+  const widthStyles = fullWidth ? "w-100" : "";
 
   return (
     <button

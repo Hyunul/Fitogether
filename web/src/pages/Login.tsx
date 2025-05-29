@@ -1,134 +1,100 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
-import Card from "../components/Card";
-import Button from "../components/Button";
-import Input from "../components/Input";
-
-interface LoginForm {
-  email: string;
-  password: string;
-}
+import { useAuth } from "../contexts/AuthContext";
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [form, setForm] = useState<LoginForm>({
-    email: "",
-    password: "",
-  });
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: API 연동
-    console.log("로그인:", form);
-    navigate("/");
+    setError("");
+    setIsLoading(true);
+
+    try {
+      await login(email, password);
+      navigate("/");
+    } catch (err) {
+      setError(t("auth.loginError"));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Fitogether</h1>
-          <p className="mt-2 text-sm text-gray-600">함께하는 피트니스 챌린지</p>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>{t("auth.login")}</h1>
+          <p>{t("auth.loginDescription")}</p>
         </div>
 
-        <Card>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <Input
-              label="이메일"
-              name="email"
+        <form onSubmit={handleSubmit} className="auth-form">
+          {error && <div className="alert alert-danger">{error}</div>}
+
+          <div className="form-group">
+            <label htmlFor="email" className="form-label">
+              {t("auth.email")}
+            </label>
+            <input
               type="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="example@email.com"
+              id="email"
+              className="form-control"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
+          </div>
 
-            <Input
-              label="비밀번호"
-              name="password"
+          <div className="form-group">
+            <label htmlFor="password" className="form-label">
+              {t("auth.password")}
+            </label>
+            <input
               type="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="••••••••"
+              id="password"
+              className="form-control"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-900"
-                >
-                  로그인 상태 유지
-                </label>
-              </div>
+          <button type="submit" className="auth-button" disabled={isLoading}>
+            {isLoading ? t("common.loading") : t("auth.login")}
+          </button>
+        </form>
 
-              <div className="text-sm">
-                <Link
-                  to="/forgot-password"
-                  className="text-blue-600 hover:text-blue-500"
-                >
-                  비밀번호를 잊으셨나요?
-                </Link>
-              </div>
-            </div>
+        <div className="auth-divider">
+          <span>{t("auth.or")}</span>
+        </div>
 
-            <Button type="submit" variant="primary" className="w-full">
-              로그인
-            </Button>
+        <div className="social-auth">
+          <button
+            className="social-button"
+            style={{ backgroundColor: "#4285F4", color: "#fff" }}
+          >
+            {/* <img src="/google-icon.svg" alt="Google" /> */}
+            {t("auth.continueWithGoogle")}
+          </button>
+          <button
+            className="social-button"
+            style={{ backgroundColor: "#FEE500", color: "#000" }}
+          >
+            {/* <img src="/kakao-icon.svg" alt="Kakao" /> */}
+            {t("auth.continueWithKakao")}
+          </button>
+        </div>
 
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">또는</span>
-                </div>
-              </div>
-
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => console.log("Google 로그인")}
-                >
-                  Google로 로그인
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => console.log("Kakao 로그인")}
-                >
-                  Kakao로 로그인
-                </Button>
-              </div>
-            </div>
-          </form>
-        </Card>
-
-        <p className="text-center text-sm text-gray-600">
-          계정이 없으신가요?{" "}
-          <Link to="/signup" className="text-blue-600 hover:text-blue-500">
-            회원가입
-          </Link>
-        </p>
+        <div className="auth-footer">
+          {t("auth.noAccount")} <Link to="/signup">{t("auth.signup")}</Link>
+        </div>
       </div>
     </div>
   );

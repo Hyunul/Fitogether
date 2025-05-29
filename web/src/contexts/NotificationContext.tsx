@@ -1,10 +1,35 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
-import Notification from "../components/Notification";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { socketService } from "../utils/socket";
+import { useAuth } from "./AuthContext";
 
-type NotificationType = "success" | "error" | "info" | "warning";
+interface Notification {
+  _id: string;
+  type: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  sender?: {
+    _id: string;
+    displayName: string;
+    profileImage?: string;
+  };
+  reference?: {
+    _id: string;
+    title?: string;
+  };
+}
 
 interface NotificationContextType {
-  showNotification: (type: NotificationType, message: string) => void;
+  notifications: Notification[];
+  unreadCount: number;
+  addNotification: (notification: Notification) => void;
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
+  deleteAllNotifications: () => Promise<void>;
+  showNotification: (message: string, type: Notification["type"]) => void;
+  dismissNotification: (id: string) => void;
+  clearNotifications: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -14,44 +39,179 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [notification, setNotification] = useState<{
-    type: NotificationType;
-    message: string;
-  } | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const { user } = useAuth();
 
-  const showNotification = useCallback(
-    (type: NotificationType, message: string) => {
-      setNotification({ type, message });
-      setTimeout(() => {
-        setNotification(null);
-      }, 5000);
-    },
-    []
-  );
+  useEffect(() => {
+    if (user?.token) {
+      socketService.connect(user.token);
 
-  const handleClose = useCallback(() => {
-    setNotification(null);
-  }, []);
+      socketService.onNotification((notification) => {
+        setNotifications((prev) => [notification, ...prev]);
+        if (!notification.isRead) {
+          setUnreadCount((prev) => prev + 1);
+        }
+      });
+
+      socketService.onNotifications((action) => {
+        if (action === "all read") {
+          setUnreadCount(0);
+          setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        } else if (action === "all deleted") {
+          setNotifications([]);
+          setUnreadCount(0);
+        }
+      });
+
+      return () => {
+        socketService.disconnect();
+      };
+    }
+  }, [user?.token]);
+
+  const addNotification = (notification: Notification) => {
+    setNotifications((prev) => [notification, ...prev]);
+    if (!notification.isRead) {
+      setUnreadCount((prev) => prev + 1);
+    }
+  };
+
+  const markAsRead = async (id: string) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/notifications/${id}/read`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setNotifications((prev) =>
+          prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/notifications/read-all`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        setUnreadCount(0);
+      }
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+    }
+  };
+
+  const deleteNotification = async (id: string) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/notifications/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setNotifications((prev) => prev.filter((n) => n._id !== id));
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+    }
+  };
+
+  const deleteAllNotifications = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/notifications`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setNotifications([]);
+        setUnreadCount(0);
+      }
+    } catch (error) {
+      console.error("Failed to delete all notifications:", error);
+    }
+  };
+
+  const showNotification = (message: string, type: Notification["type"]) => {
+    const notification: Notification = {
+      _id: Date.now().toString(),
+      type,
+      message,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    };
+    setNotifications((prev) => [notification, ...prev]);
+    if (!notification.isRead) {
+      setUnreadCount((prev) => prev + 1);
+    }
+  };
+
+  const dismissNotification = (id: string) => {
+    setNotifications((prev) =>
+      prev.filter((notification) => notification._id !== id)
+    );
+  };
+
+  const clearNotifications = () => {
+    setNotifications([]);
+  };
 
   return (
-    <NotificationContext.Provider value={{ showNotification }}>
+    <NotificationContext.Provider
+      value={{
+        notifications,
+        unreadCount,
+        addNotification,
+        markAsRead,
+        markAllAsRead,
+        deleteNotification,
+        deleteAllNotifications,
+        showNotification,
+        dismissNotification,
+        clearNotifications,
+      }}
+    >
       {children}
-      {notification && (
-        <Notification
-          type={notification.type}
-          message={notification.message}
-          onClose={handleClose}
-        />
-      )}
     </NotificationContext.Provider>
   );
 };
 
-export const useNotification = () => {
+export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (context === undefined) {
     throw new Error(
-      "useNotification must be used within a NotificationProvider"
+      "useNotifications must be used within a NotificationProvider"
     );
   }
   return context;
