@@ -1,0 +1,38 @@
+service: fitogether-api
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'ap-northeast-2'}
+  environment:
+    MONGODB_URI: ${ssm:/fitogether/${self:provider.stage}/mongodb-uri}
+    FIREBASE_PROJECT_ID: ${ssm:/fitogether/${self:provider.stage}/firebase-project-id}
+    FIREBASE_PRIVATE_KEY: ${ssm:/fitogether/${self:provider.stage}/firebase-private-key}
+    FIREBASE_CLIENT_EMAIL: ${ssm:/fitogether/${self:provider.stage}/firebase-client-email}
+
+functions:
+  api:
+    handler: src/lambda.handler
+    events:
+      - http:
+          path: /{proxy+}
+          method: any
+          cors: true
+          authorizer:
+            name: firebaseAuth
+            type: token
+            identitySource: method.request.header.Authorization
+            resultTtlInSeconds: 0
+
+  firebaseAuth:
+    handler: src/auth/firebase-auth.handler
+    events:
+      - http:
+          path: /auth
+          method: any
+          cors: true
